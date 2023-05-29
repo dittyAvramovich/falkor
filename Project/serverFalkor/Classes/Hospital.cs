@@ -1,105 +1,176 @@
-﻿using System.Data;
+﻿using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.Runtime.Intrinsics.Arm;
+using static serverFalkor.Classes.Department;
+using static serverFalkor.Classes.Floor;
+using static serverFalkor.Classes.Table;
 
 namespace FalkorTest.Classes
 {
     public class Hospital
     {
-        public static List<string> GetFloors1()
+        public static List<floor> GetFloors()
         {
-            List<string> floors = new List<string>();
-            using (SqlConnection conn = new SqlConnection("Server=DESKTOP-E68S884;SQLEXPRESS;DataBase=Northwind;Integrated Security=SSPI"))
+            List<floor> floors = new List<floor>();
+            try
             {
-                conn.Open();
-
-                // 1.  create a command object identifying the stored procedure
-                SqlCommand cmd = new SqlCommand("CustOrderHist", conn);
-
-                // 2. set the command object so it knows to execute a stored procedure
-                cmd.CommandType = CommandType.StoredProcedure;
-
-                // 3. add parameter to command, which will be passed to the stored procedure
-                cmd.Parameters.Add(new SqlParameter("@CustomerID", null));
-
-                // execute the command
-                using (SqlDataReader rdr = cmd.ExecuteReader())
+                using (SqlConnection cn = new SqlConnection
+                    ("Data Source=DESKTOP-E68S884\\SQLEXPRESS;Initial Catalog=_MedicalTests;Integrated Security=true")
+)
                 {
-                    // iterate through results, printing each to console
-                    while (rdr.Read())
+                    using (var cm = new SqlCommand("getFloors", cn) { CommandType = CommandType.StoredProcedure })
                     {
-                        floors.Add(rdr.ToString());
-                        Console.WriteLine("Product: {0,-35} Total: {1,2}", rdr["ProductName"], rdr["Total"]);
+                        cn.Open();
+                        cm.Parameters.Add(new SqlParameter("@department_id", null));
+
+                        using (SqlDataReader rdr = cm.ExecuteReader())
+                        {
+                            while (rdr.Read())
+                            {
+                                floors.Add(new floor { Id = rdr.GetInt32("floor_id"), Name = (string)rdr["floor_desc"] });
+                            }
+                            rdr.Close();
+                        }
+                        cn.Close();
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
 
+            }
             return floors;
-        
-    }
+        }
 
-        public static List<string> GetDepartmentsByFloor(int floorId)
+        public static List<departments> GetDepartmentsByFloor(int floorId)
         {
-            List<string> departments = new List<string>();
-            using (SqlConnection conn = new SqlConnection("Server=DESKTOP-E68S884;SQLEXPRESS;DataBase=Northwind;Integrated Security=SSPI"))
+            List<departments> departments = new List<departments>();
+            try
             {
-                conn.Open();
-
-                // 1.  create a command object identifying the stored procedure
-                SqlCommand cmd = new SqlCommand("CustOrderHist", conn);
-
-                // 2. set the command object so it knows to execute a stored procedure
-                cmd.CommandType = CommandType.StoredProcedure;
-
-                // 3. add parameter to command, which will be passed to the stored procedure
-                cmd.Parameters.Add(new SqlParameter("@FloorId", floorId));
-
-                // execute the command
-                using (SqlDataReader rdr = cmd.ExecuteReader())
+                using (SqlConnection cn = new SqlConnection
+                    ("Data Source=DESKTOP-E68S884\\SQLEXPRESS;Initial Catalog=_MedicalTests;Integrated Security=true")
+)
                 {
-                    // iterate through results, printing each to console
-                    while (rdr.Read())
+                    //"Trusted_Connection=True;TrustServerCertificate=True;Server=./SQLEXPRESS;database=_MedicalTests;
+                    using (var cm = new SqlCommand("getDepartments", cn) { CommandType = CommandType.StoredProcedure })
                     {
-                        departments.Add(rdr.ToString());
+                        cn.Open();
+                        cm.Parameters.Add(new SqlParameter("@floor_id", floorId));
+
+                        using (SqlDataReader rdr = cm.ExecuteReader())
+                        {
+                            while (rdr.Read())
+                            {
+                                departments.Add(new departments { Id = rdr.GetInt32("department_id"), Department_desc = (string)rdr["department_desc"] });
+                            }
+                            rdr.Close();
+                        }
+                        cn.Close();
                     }
                 }
             }
-
-            return departments;
-
-        }
-
-        public static List<string> GetTable(int floorId, int departmentId)
-        {
-            List<string> departments = new List<string>();
-            using (SqlConnection conn = new SqlConnection("Server=DESKTOP-E68S884;SQLEXPRESS;DataBase=Northwind;Integrated Security=SSPI"))
+            catch (Exception ex)
             {
-                conn.Open();
+                Console.WriteLine(ex);
 
-                // 1.  create a command object identifying the stored procedure
-                SqlCommand cmd = new SqlCommand("CustOrderHist", conn);
-
-                // 2. set the command object so it knows to execute a stored procedure
-                cmd.CommandType = CommandType.StoredProcedure;
-
-                // 3. add parameter to command, which will be passed to the stored procedure
-                cmd.Parameters.Add(new SqlParameter("@FloorId", floorId));
-
-                // execute the command
-                using (SqlDataReader rdr = cmd.ExecuteReader())
-                {
-                    // iterate through results, printing each to console
-                    while (rdr.Read())
-                    {
-                        departments.Add(rdr.ToString());
-                    }
-                }
             }
-
             return departments;
-
         }
 
+        public static List<table> GetTable(int floorId, int departmentId)
+        {
+            List<table> table = new List<table>();
+            try
+            {
+                using (SqlConnection cn = new SqlConnection
+                    ("Data Source=DESKTOP-E68S884\\SQLEXPRESS;Initial Catalog=_MedicalTests;Integrated Security=true"))
+                {
+
+
+                    using (SqlCommand cm = new SqlCommand("getDataQueue", cn) { CommandType = CommandType.StoredProcedure })
+                    {
+
+
+                        cn.Open();
+                        cm.Parameters.Add(new SqlParameter("@date", new DateTime(2022, 2, 18)));
+                        cm.Parameters.Add(new SqlParameter("@floor_id", floorId));
+                        cm.Parameters.Add(new SqlParameter("@department_id", departmentId));
+                        DataSet dataset = new DataSet();
+                        SqlDataAdapter adapter = new SqlDataAdapter(cm);
+                        adapter.Fill(dataset);
+                        table objEmp = new table();
+                        List<table> empList = new List<table>();
+                        foreach (DataRow dr in dataset.Tables[0].Rows)
+                        {
+                            empList.Add(new table
+                            {
+                                 row_num = (int)Convert.ToInt64(dr["row_num"]),
+                                    patientId = Convert.ToString(dr["patient_id"]),
+                                    fullName = Convert.ToString(dr["fullName"]),
+                                    patientPhone = Convert.ToString(dr["patient_phone"]),
+                                    disguisedName = Convert.ToString(dr["disguised_name"]),
+                                    queuNumber = Convert.ToString(dr["queue_number"]),
+                                    doctorName = Convert.ToString(dr["Doctor_Name"]),
+
+                                    payer = Convert.ToString(dr["payer"]),
+
+                                    scheduledTime = (TimeSpan)dr["schedule_time"],
+                                    scheduledTimeInterval = (TimeSpan)dr["scheduled_time_interval"],
+                                     cirorogia = Convert.ToString(dr["כירורגיה"]),
+                                    mos = Convert.ToString(dr["מוס"]),
+                                    eyes = Convert.ToString(dr["עיניים"]),
+                                    lashes = Convert.ToString(dr["עפעפיים"])
+
+                                
+                            });
+                        }
+                    };
+
+
+
+                }
+
+                //        using (SqlDataReader rdr = cm.ExecuteReader())
+                //        {
+
+                //            while (rdr.Read())
+                //            {
+
+
+                //                table.Add(new table
+                //                {
+                //                    row_num = (int)rdr.GetInt64(0),
+                //                    patientId = (string)rdr[1],
+                //                    fullName = (string)rdr[2],
+                //                    patientPhone = (string)rdr[3],
+                //                    disguisedName = (string)rdr[4],
+                //                    queuNumber = (string)rdr[5],
+                //                    doctorName = (string)rdr[6],
+                //                    payer = (string)rdr[7],
+                //                    scheduledTime = (TimeSpan)rdr[8],
+                //                    scheduledTimeInterval = (TimeSpan)rdr[9],
+                //                    cirorogia = (string)rdr[10],
+                //                    mos = (string)rdr[11],
+                //                    eyes = (string)rdr[12],
+                //                    lashes = (string)rdr[13],
+                //                });
+                //            }
+                //            rdr.Close();
+                //        }
+                //        cn.Close();
+                //    }
+                //}
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+
+            }
+            return table;
+        }
     }
 }
 
@@ -107,53 +178,3 @@ namespace FalkorTest.Classes
 
 
 
-//public static List<ContentSearch> Get(string searchValue, string TextFalse, string TextTrue)
-//{
-//    List<ContentSearch> contentSearchs = new List<ContentSearch>();
-//    try
-//    {
-//        string connectionString = ConfigurationUtil.ConnectionStrings("QFlowDB").ConnectionString;
-//        using (SqlConnection cn = new SqlConnection(connectionString))
-//        {
-//            using (var cm = new SqlCommand("[cqf].[ContentTextSearch]", cn) { CommandType = CommandType.StoredProcedure })
-//            {
-//                cn.Open();
-//                string UserName = HttpContext.Current.User.Identity.Name;
-//                cm.Parameters.Add(new SqlParameter("@UserName", UserName));
-//                cm.Parameters.Add(new SqlParameter("@SearchValue", searchValue));
-//                cm.Parameters.Add(new SqlParameter("@TextFalse", TextFalse));
-//                cm.Parameters.Add(new SqlParameter("@TextTrue", TextTrue));
-//                using (var dr = cm.ExecuteReader(CommandBehavior.SingleResult))
-//                {
-//                    while (dr.Read())
-//                    {
-//                        TemplateObjectType etype = (TemplateObjectType)Convert.ToInt32(dr["ObjectType"]);
-//                        contentSearchs.Add(new ContentSearch
-//                        {
-//                            Value = dr["Value"].ToString(),
-//                            LanguageCode = dr["LanguageCode"].ToString(),
-//                            ContentTemplateId = Convert.ToInt32(dr["ContentTemplateId"]),
-//                            ObjectId = Convert.ToInt32(dr["ObjectId"]),
-//                            ObjectType = etype.ToString(),
-//                            ObjectName = dr["ObjectName"].ToString(),
-//                            ParameterName = dr["ParameterName"].ToString(),
-//                            Description = dr["DescriptionObject"].ToString(),
-//                            IsContentItem = Convert.ToBoolean(dr["IsContentItem"]),
-//                            NumberPage = dr["PageNum"].ToString()
-
-//                        }); ;
-
-//                    }
-//                    dr.Close();
-//                }
-//                cn.Close();
-//            }
-//        }
-//    }
-//    catch (Exception ex)
-//    {
-//        EventLogEntry ev = new EventLogEntry(EventLogEntryType.Error, "ContentSearchAPI.DAL.ContentSearchRepository.Get", ex.ToString(), 0, 0);
-//        EventLog.Write(ref ev);
-//    }
-//    return contentSearchs;
-//}

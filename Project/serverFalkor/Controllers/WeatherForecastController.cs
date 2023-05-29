@@ -1,5 +1,8 @@
 using FalkorTest.Classes;
 using Microsoft.AspNetCore.Mvc;
+using static serverFalkor.Classes.Department;
+using static serverFalkor.Classes.Floor;
+using static serverFalkor.Classes.Table;
 
 namespace serverFalkor.Controllers
 {
@@ -20,20 +23,20 @@ namespace serverFalkor.Controllers
         }
 
         [HttpGet(Name = "GetWeatherForecast")]
-        public List<string> GetFloors()
+        public List<floor> GetFloors()
         {
-            return Hospital.GetFloors1();
+            return Hospital.GetFloors();
         }
 
 
         [HttpGet("{floorId}")]
-        public List<string> GetDepartmentsByFloor(int floorId)
+        public List<departments> GetDepartmentsByFloor(int floorId)
         {
             return Hospital.GetDepartmentsByFloor(floorId);
         }
 
         [HttpGet("{floorId}/{departmentId}")]
-        public List<string> GetTable(int floorId, int departmentId)
+        public List<table> GetTable(int floorId, int departmentId)
         {
             return Hospital.GetTable(floorId, departmentId);
         }
