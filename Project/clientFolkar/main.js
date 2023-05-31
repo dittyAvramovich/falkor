@@ -1,66 +1,64 @@
 ﻿const api_url = "https://localhost:7212/WeatherForecast";
 var floor;
 var dep;
+var tablrData;
 window.onload = function () {
     $('#myFloorsSelect').append($('<option>', {
         value: -1,
         text: "בחר קומה"
-      } ));
+    }));
     fetch(api_url)
         .then(response => response.json())
         .then(data => {
-            $.each(data, function(index, value) {
-  $('#myFloorsSelect').append($('<option>', {
-                  value: index+1,
-                  text: value.name
-                } )); 
+            $.each(data, function (index, value) {
+                $('#myFloorsSelect').append($('<option>', {
+                    value: index + 1,
+                    text: value.name
+                }));
             });
-            $('#myFloorsSelect').on('change', function() {
+            $('#myFloorsSelect').on('change', function () {
                 var floorId = $(this).val();
                 getDep(floorId);
-                floor=floorId;
+                floor = floorId;
                 $('#myDepSelect').removeData();
-            }); 
+            });
             if (data != null) {
-                //createTable(data);
             }
             console.log(data);
         })
         .catch(error => {
-            // handle any errors here
             console.error(error);
         });
 };
-function favTutorial() {
-    var mylist = document.getElementById("myList");
-    document.getElementById("favourite").value = mylist.options[mylist.selectedIndex].text;
-}
 
 function getDep(floorId) {
     $('#myDepSelect').empty();
     $('#myDepSelect').append($('<option>', {
         value: -1,
-        text: "בחר מחלקה"
-      } ));
+        text: "בחר מחלקה",
+    }));
+    $('#myDepSelect').append($('<option>', {
+        value: 0,
+        text: "בחר הכל",
+    }));
     fetch(`${api_url}/${floorId}`)
         .then(response => response.json())
         .then(data => {
-            $.each(data, function(index, value) {
+            $.each(data, function (index, value) {
                 $('#myDepSelect').append($('<option>', {
-                  value: index+1,
-                  text: value.department_desc
-                } ));
+                    value: value.id,
+                    text: value.department_desc
+                }));
             });
-            $('#myFloorsSelect').on('change', function() {
-                dep = $(this).val();
+
+            $('#myDepSelect').on('change', function () {
+                dep = this.value;
+                var selectedOption = $(this).find(':selected');
+                var departmentDesc = selectedOption.text();
+                depName = departmentDesc;
             });
-            if (data != null) {
-                //createTable(data);
-            }
-            console.log(data);
         })
         .catch(error => {
-            // handle any errors here
             console.error(error);
         });
 }
@@ -68,128 +66,84 @@ function showData() {
     fetch(`${api_url}/${floor}/${dep}`)
         .then(response => response.json())
         .then(data => {
+            console.log(data)
+            tablrData = data;
             if (data != null) {
-                //createTable(data);
+                createTable(data);
             }
             console.log(data);
         })
         .catch(error => {
             console.error(error);
         });
-}
-function createTable(data) {
 
-    $("#searchdiv")
-        .append(`<div id="resultSearchdiv" style="box-shadow: -1px 1px 1px 1px rgb(0 0 0 / 30%)";"><br> 
-<div class="FormFrameTitle">
-<lable border="0" cellpadding="0" cellspacing="0" style="width: 97%" class="NoWrap">${getJsonValue('resultsSearch', 'search results:')}</lable></div>`);
-    $("#resultSearchdiv")
-        .append(`<div style="margin:2%"> 
-<div class="FormFrameTitle">
-<lable border="0" cellpadding="0" cellspacing="0" style="width: 97%" class="NoWrap">${getJsonValue('contenTtemplatesSearch', 'Content templates:')}</lable>
-</div>
- <table id="tableSearchTem" border="0" cellpadding="1" cellspacing="1" class="List">
-         <thead class="ListTitle">
-           <tr>
-              <th class="ListTitle"  style="white-space: nowrap; width: 25%;" valign="top">
-             ${getJsonValue('contentTemplateName', 'Content template name')} 
-              </th>
-              <th class="ListTitle" valign="top" scope="col" >
-                 ${getJsonValue('objectType', 'Level / Object type')}
-              </th>
-              <th class="ListTitle" style="width: 30%;" valign="top" scope="col">
-               ${getJsonValue('defaultValue', 'Default value')}   
-              </th>
-              <th class="ListTitle"  style="white-space: nowrap" valign="top">
-               ${getJsonValue('Language', 'Language')}  
-              </th >
-           </tr>  
-         </thead>
-  </table> 
-</div><br>`);
-    $("#resultSearchdiv")
-        .append(`<div style="margin:2%"> 
-     <div class="FormFrameTitle">
-      <lable border="0" cellpadding="0" cellspacing="0" style="width: 97%" class="NoWrap">${getJsonValue('contenItemlatesSearch', 'Content item:')}</lable> 
-     </div>
-       <table id="tableSearchItem" border="0" cellpadding="1" cellspacing="1" class="List">
-         <thead class="ListTitle">
-           <tr>
-              <th class="ListTitle"  style="white-space: nowrap; width: 25%;" valign="top">
-                ${getJsonValue('contentItemName', 'Content item name')}
-              </th>
-              <th class="ListTitle"  style="white-space: nowrap; width: 25%;" valign="top">
-                 ${getJsonValue('objectType', 'Level / Object type')} 
-              </th>
-               <th class="ListTitle"  style="white-space: nowrap; width: 25%;" valign="top">
-                 ${getJsonValue('Object', 'Object')} 
-              </th>
-            <th class="ListTitle"  style="white-space: nowrap; width: 25%;" valign="top">
-                 ${getJsonValue('defaultValue', 'Default value')}
-              </th >
-            <th class="ListTitle"  style="white-space: nowrap;" valign="top">
-                 ${getJsonValue('Language', 'Language')}  
-              </th >
-           </tr>  
-           </thead>
-        </table> 
-    </div><br>`);
-    result.forEach(
-        element => {
-            if (!element.IsContentItem) {
-                http = `${window.urlRelativePathBase}Design/ContentTemplates.aspx?id=${element.ContentTemplateId}`
-                $('#tableSearchTem')
-                    .append(`
-    <tr class="ListRow" style="height: 48px">
-       <td style="white-space: nowrap" valign="top">
-          ${element.ParameterName} 
-       </td>
-       <td style="white-space: nowrap" valign="top">
-          ${getJsonValue(`${element.ObjectType}ObjectType`, `${element.ObjectType}`)} 
-       </td>
-       <td  style="white-space: nowrap" valign="top" >
-         <a href="${http}" target="_blank">
-          ${element.Value} 
-         </a>
-       </td>
-       <td style="white-space: nowrap" valign="top">
-         ${element.LanguageCode}
-       </td>        
-    </tr>`)
-            }
-            else {
-                http = `${window.urlRelativePathBase}Design/ContentManagement.aspx?obj=${element.ObjectType}&id=${element.ObjectId}&lang=${element.LanguageCode}&val=${element.ParameterName}`
-                $('#tableSearchItem')
-                    .append(`
-    <tr class="ListRow" style="height: 48px">
-       <td style="white-space: nowrap" valign="top">
-          ${element.ParameterName} 
-       </td>
-      <td style="white-space: nowrap" valign="top">
-           ${getJsonValue(`${element.ObjectType}ObjectType`, `${element.ObjectType}`)} 
-       </td>
-       <td style="white-space: nowrap" valign="top">
-          ${element.ObjectName} 
-       </td>
-       <td style="white-space: nowrap" valign="top">
-         <a href="${http}" target="_blank">
-          ${element.Value} 
-         </a>
-       </td>
-       <td style="white-space: nowrap" valign="top">
-         ${element.LanguageCode}
-       </td>        
-    </tr>`)
-            }
-        });
-    backgroundOdd();
+}
+
+function groupBy(list, keyGetter) {
+    const map = new Map();
+    list.forEach((item) => {
+        const key = keyGetter(item);
+        const collection = map.get(key);
+        if (!collection) {
+            map.set(key, [item]);
+        } else {
+            collection.push(item);
+        }
+    });
+    return Array.from(map.entries());
+}
+
+function getCutName(fullName) {
+    const parts = fullName.split(" ");
+    const firstName = parts[0];
+    const lastName = parts[1];
+    const abbreviatedName = `${firstName.charAt(0)}. ${lastName}`;
+    return abbreviatedName;
+}
+
+function createTable(data) {
+    $('#message').empty();
+    $('#tabtbody').empty();
+    $('#message').append(`לוח תורים לתאריך 18.02.2022 קומה ${floor}`)
+
+    const grouped = groupBy(data, d => d.scheduled_time_interval);
+    var columns = Object.keys(data[0]);
+
+    var colString = "";
+    colString += `<tr><th>שעה</th>`;
+    for (let index = 9; index < columns.length; index++) {
+        colString += `<th>${columns[index]}</th>`;
+    }
+    colString += "</tr>"
+    $('#tabtbody').append(colString);
+
+    var rowString = "";
+    grouped.forEach(g => {
+        rowString += `<tr> <td> ${g[0]} </td>`;
+        for (let index = 9; index < columns.length; index++) {
+            rowString += "<td>"
+            g[1].forEach(el => {
+                if (el[columns[index]] == null)
+                    rowString += ``
+                else rowString += `<span class="clickable" id="${el.patient_id}"data-value="${el[columns[index]]}">${getCutName(el[columns[index]])} </span><br/>`
+            });
+            rowString += "</td>"
+        }
+        rowString += '</tr>'
+    });
+
+    $('#tabtbody').append(rowString);
 };
 
-// api url
-
-// Function to hide the loader
-function hideloader() {
-    document.getElementById('loading').style.display = 'none';
-}
-
-
+document.addEventListener("click", function (e) {
+    const name = e.target.dataset.value;
+    const id = e.target.id;
+    const person = tablrData?.find((i) => i.patient_id == id);
+    var payer = "";
+    if (person?.payer == "" || person?.payer == null)
+        payer = "פרטי";
+    if (person) {
+        alert(`שם מלא:${name},
+  שעת זימון:${person?.schedule_time},שם רופא:${person?.doctor_Name},גורם משלם:${payer != "" ? payer : person?.payer}`)
+    }
+});

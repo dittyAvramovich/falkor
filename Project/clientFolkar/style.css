@@ -1,7 +1,18 @@
-
 #selectLists {
     margin-left: 50%;
 }
-#message{
+
+#message {
     margin-top: 4%;
+}
+
+table {
+    border-collapse: collapse;
+    align-items: center;
+    display: inline-block
+}
+th,
+td {
+    border: 1px solid black;
+    padding: 8px;
 }
