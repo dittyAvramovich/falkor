@@ -58,4 +58,4 @@ EXECUTE sp_executesql @sqlQuery
 end
 go
 
-EXECUTE getDataQueue @date='2022-02-18', @floor_id = 3
+EXECUTE getDataQueue @date='2022-02-18', @floor_id = 2
